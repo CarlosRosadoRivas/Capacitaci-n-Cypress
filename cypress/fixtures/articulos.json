@@ -1,0 +1,22 @@
+[
+  {
+    "nombre": "Samsung galaxy s6",
+    "precio": 360,
+    "id":1
+  },
+  {
+    "nombre": "Nokia lumia 1520",
+    "precio": 820,
+    "id":2
+  },
+  {
+    "nombre": "Nexus 6",
+    "precio": 650,
+    "id":3
+  },
+  {
+    "nombre": "Samsung galaxy s7",
+    "precio": 800,
+    "id":4
+  }
+]
