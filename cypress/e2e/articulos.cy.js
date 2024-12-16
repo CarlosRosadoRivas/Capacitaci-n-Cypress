@@ -1,3 +1,6 @@
+//Libreria para tener todas las funciones de Cypress en listado despues del .
+/// <reference types="Cypress"/>
+
 describe('HomePage spec', () => {
   beforeEach(() => {
     cy.visit('https://www.demoblaze.com/')
@@ -83,7 +86,7 @@ describe('HomePage spec', () => {
         const articulo = articulos[3]; // Cuarto artículo
         //Busca el artiulo 4 y hace click en él
         cy.xpath('//*[@id="tbodyid"]/div[4]').contains('Samsung galaxy s7').click()
-        
+
         // Verifica que la URL cambió correctamente
         cy.location("pathname").should("eq", "/prod.html");
         cy.location("search").should("eq", `?idp_=${articulo.id}`)
@@ -101,5 +104,12 @@ describe('HomePage spec', () => {
         })
       })
     })
+  })
+
+  context("Contabiliza los productos en el HomePage", () =>{
+  //Esta prueba podria servir para contar que el número de grilas en playback sea adecuada.
+  it.only('Contabiliza el número de cards en el homePage', ()=>{
+    cy.get('#tbodyid >').should('have.length',9)
+  })
   })
 })
