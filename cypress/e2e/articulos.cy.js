@@ -1,115 +1,53 @@
-//Libreria para tener todas las funciones de Cypress en listado despues del .
-/// <reference types="Cypress"/>
+//Este es el archivo principal o Spec , desde aquí se haran los e2e y se importan las clases desde los otros files
 
-describe('HomePage spec', () => {
-  beforeEach(() => {
-    cy.visit('https://www.demoblaze.com/')
-  })
 
-  context("Artículos del HomePage", () => {
-    it('Probando primer artículo', () => {
-      // Importando datos desde JSON
-      cy.fixture('articulos.json').then((articulos) => {
-        const articulo = articulos[0]; // Selecciona el primer artículo
+//Esta lìnea de còdigo me deja ver los diferentes comandos que tiene cypress
+/// <reference types="Cypress" />
 
-        // Busca el artículo por nombre y hace clic en él
-        cy.xpath('//*[@id="tbodyid"]/div[1]').contains(articulo.nombre).click();
+//Importo el uso de xpath para su uso en lugar de cy.get
+require('cypress-xpath');
 
-        // Verifica que la URL cambió correctamente
-        cy.location("pathname").should("eq", "/prod.html");
-        cy.location("search").should("eq", `?idp_=${articulo.id}`);
+//Importo las clases desde los Pages del POM
+import HomePage from '../support/Pages/HomePage.js';
+import ProductPage from '../support/Pages/Products.js';
+import CartPage from '../support/Pages/Cart.js';
 
-        // Verifica el precio del artículo
-        const precioConFormato = `$${articulo.precio}`; // Formatea el precio para incluir el signo de dólar
-        cy.xpath("//h3[@class='price-container']").should('be.visible').contains(precioConFormato);
+describe('Demoblaze Product Search and Cart Tests', () => {
+    //Instanceo las clases (Las llamo), no se si esto esta correcto , no uso const que era lo que estaba mal en la anterior entrega
+    let homePage = new HomePage();
+    let productPage = new ProductPage();
+    let cartPage = new CartPage();
 
-        // Hace clic en el botón Add to cart
-        cy.xpath("//a[@class='btn btn-success btn-lg']").contains('Add to cart').click();
+    before(() => {
+        //Uso de clase, va a la pagina para iniciar la prueba, uso before y no beforeache como antes porque se junto todo en un solo it
+        //Hago uso de la primera variable que instancie en la linea 17, navigateTo esta definido en Base.js que => cy.visit
+        homePage.navigateTo('https://www.demoblaze.com');
+    });
 
-        // Verifica que el producto haya sido añadido
-        cy.on('window:alert', (alertText) => {
-          expect(alertText).to.equal('Product added')
-        })
-      })
-    })
+    it('should search and add products to the cart', () => {
+        //A partir de aquí inicia la prueba, tomara del JSON los datos iterando uno por uno.
+        cy.fixture('articulos.json').then(function (productos) {
+            productos.forEach(function (producto) {
+                // Busca el producto por su nombre
+                homePage.clickOnProduct(producto.nombre);
+                // Despues verifica el nombre y precio del producto
+                productPage.verifyProductName(producto.nombre);
+                productPage.verifyProductPrice(producto.precio);
+                // Añade el producto al carrito
+                productPage.addToCart();
+                // Regresa a la página principal
+                cy.visit('https://www.demoblaze.com');
+            });
 
-    it('Probando segundo articulo', () => {
-      cy.fixture('articulos.json').then((articulos) => {
-        const articulo = articulos[1]; // Segundo artículo
-        //Busca el artiulo 2 y hace click en él
-        cy.xpath(`//*[@id="tbodyid"]/div`).contains(articulo.nombre).click();
-
-        // Verifica que la URL cambió correctamente
-        cy.location("pathname").should("eq", "/prod.html");
-        cy.location("search").should("eq", `?idp_=${articulo.id}`);
-
-        // Verifica el precio del artículo
-        const precioConFormato = `$${articulo.precio}`; // Formatea el precio para incluir el signo de dólar
-        cy.xpath("//h3[@class='price-container']").should('be.visible').contains(precioConFormato);
-
-        //Hace click en el boton Add to cart
-        cy.xpath("//a[@class='btn btn-success btn-lg']").contains('Add to cart').click()
-
-        //Verifica que el producto haya sido añadido
-        cy.on('window:alert', (alertText) => {
-          expect(alertText).to.equal('Product added')
+            // Verifica el contenido del carrito
+            //Busco en el navbar el carrito y doy click
+            cy.xpath('//*[@id="navbarExample"]/ul/li[4]/a').click();
+            //Verifico para cada elemento que se encuentre en el carrito y luego el precio refeljado
+            productos.forEach(function (producto) {
+                cartPage.verifyProductInCart(producto.nombre);
+                cartPage.verifyProductPriceInCart(producto.nombre, producto.precio);
+            //Como genere las iteraciones haciendo una unica prueba ya no hay cy.back y aqui termina el script
+            });
         });
-      })
-    })
-
-    it('Probando tercer articulo', () => {
-      cy.fixture('articulos.json').then((articulos) => {
-        const articulo = articulos[2]; // Tercer artículo
-        //Busca el artiulo 3 y hace click en él
-        cy.xpath('//*[@id="tbodyid"]/div[3]').contains(articulo.nombre).click()
-
-        // Verifica que la URL cambió correctamente
-        cy.location("pathname").should("eq", "/prod.html");
-        cy.location("search").should("eq", `?idp_=${articulo.id}`);
-
-        // Verifica el precio del artículo
-        const precioConFormato = `$${articulo.precio}`; // Formatea el precio para incluir el signo de dólar
-        cy.xpath("//h3[@class='price-container']").should('be.visible').contains(precioConFormato);
-
-        //Hace click en el boton Add to cart
-        cy.xpath("//a[@class='btn btn-success btn-lg']").contains('Add to cart').click()
-
-        //Verifica que el producto haya sido añadido
-        cy.on('window:alert', (alertText) => {
-          expect(alertText).to.equal('Product added')
-        });
-      })
-    })
-
-    it('Probando cuarto articulo', () => {
-      cy.fixture('articulos.json').then((articulos) => {
-        const articulo = articulos[3]; // Cuarto artículo
-        //Busca el artiulo 4 y hace click en él
-        cy.xpath('//*[@id="tbodyid"]/div[4]').contains('Samsung galaxy s7').click()
-
-        // Verifica que la URL cambió correctamente
-        cy.location("pathname").should("eq", "/prod.html");
-        cy.location("search").should("eq", `?idp_=${articulo.id}`)
-
-        // Verifica el precio del artículo
-        const precioConFormato = `$${articulo.precio}`; // Formatea el precio para incluir el signo de dólar
-        cy.xpath("//h3[@class='price-container']").should('be.visible').contains(precioConFormato);
-
-        //Hace click en el boton Add to cart
-        cy.xpath("//a[@class='btn btn-success btn-lg']").contains('Add to cart').click()
-
-        //Verifica que el producto haya sido añadido
-        cy.on('window:alert', (alertText) => {
-          expect(alertText).to.equal('Product added')
-        })
-      })
-    })
-  })
-
-  context("Contabiliza los productos en el HomePage", () =>{
-  //Esta prueba podria servir para contar que el número de grilas en playback sea adecuada.
-  it.only('Contabiliza el número de cards en el homePage', ()=>{
-    cy.get('#tbodyid >').should('have.length',9)
-  })
-  })
-})
+    });
+});
